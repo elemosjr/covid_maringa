@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd py
+echo "extracting data"
+./get_data.py
