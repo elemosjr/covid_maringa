@@ -5,4 +5,7 @@ echo "extracting data"
 ./get_data.py
 
 COMMIT=$(date +"%d/%m/%Y")
-kaggle datasets version -p data -m "$COMMIT"
+git add ../data
+git commit -m "$COMMIT"
+git push -u origin master
+kaggle datasets version -p ../data -m "$COMMIT"
