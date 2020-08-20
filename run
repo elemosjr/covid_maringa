@@ -3,3 +3,6 @@
 cd py
 echo "extracting data"
 ./get_data.py
+
+COMMIT=$(date +"%d/%m/%Y")
+kaggle datasets version -p data -m "$COMMIT"
