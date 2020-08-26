@@ -27,7 +27,7 @@ print("setup driver.")
 driver.get(url)
 print("driver: get url")
 
-time.sleep(1)
+time.sleep(3)
 
 data = re.sub(" ", "", re.search("^.* ", driver.find_element_by_css_selector("#card-confirm-data").text).group())
 print("find 'data'")
