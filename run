@@ -4,6 +4,7 @@ cd py
 echo "extracting data"
 ./get_data.py
 
+#COMMIT=$(Rscript -e 'format(dplyr::last(as.Date(data.table::fread("maringa.csv")$data)), format = "%d/%m/%Y")')
 COMMIT=$(date +"%d/%m/%Y")
 git add ../data
 git commit -m "$COMMIT"
