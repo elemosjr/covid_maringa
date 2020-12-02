@@ -1,4 +1,8 @@
 *** You are running in headless mode.
-console.error: SearchCache: "_readCacheFile: Error reading cache file:" (new Error("", "(unknown module)"))
-1598481527406	Marionette	INFO	Listening on port 41357
-1598481527501	Marionette	WARN	TLS certificate errors will be ignored for this session
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1606863775058	Marionette	INFO	Listening on port 33103
+1606863775092	Marionette	WARN	TLS certificate errors will be ignored for this session
+*** You are running in headless mode.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1606932996411	Marionette	INFO	Listening on port 35367
+1606932996531	Marionette	WARN	TLS certificate errors will be ignored for this session

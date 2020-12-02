@@ -14,8 +14,8 @@ def get_num(text):
 
 url = "https://notificasaude.com.br/"
 
-options = Options()
-options.headless = True
+#options = Options()
+#options.headless = True
 print("options set.")
 
 #options = FirefoxOptions()
@@ -32,7 +32,7 @@ time.sleep(3)
 data = re.sub(" ", "", re.search("^.* ", driver.find_element_by_css_selector("#card-confirm-data").text).group())
 print("find 'data'")
 
-confirmados = get_num(driver.find_element_by_css_selector("#card-posit").text)
+confirmados = get_num(driver.find_element_by_css_selector("#card-posit p").text)
 print("find 'confirmados'")
 
 ativos = get_num(driver.find_element_by_css_selector("#card-tratam").text)
