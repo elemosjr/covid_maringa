@@ -14,8 +14,8 @@ def get_num(text):
 
 url = "https://notificasaude.com.br/"
 
-#options = Options()
-#options.headless = True
+options = Options()
+options.headless = True
 print("options set.")
 
 #options = FirefoxOptions()
