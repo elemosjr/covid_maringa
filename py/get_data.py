@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/local/bin/python3
 
 import requests
 import time
@@ -22,6 +22,7 @@ print("options set.")
 #options.add_argument("--headless")
 
 driver = webdriver.Firefox(options = options)
+driver.set_window_size(1920, 2000)
 print("setup driver.")
 
 driver.get(url)
