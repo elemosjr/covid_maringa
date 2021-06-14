@@ -132,7 +132,7 @@ dados1 <- dados %>%
   unite("data", mes:ano, sep = "/") %>%
   mutate(data = dmy(paste0("1/", data))) 
 
-dados1 %>%
+plot1 <- dados1 %>%
   ggplot(aes(x = data, y = novos_obitos)) +
   geom_col_interactive() +
   geom_label_interactive(aes(label = novos_obitos), nudge_y = 5) +
@@ -143,6 +143,9 @@ dados1 %>%
   scale_x_date(breaks = dados1$data,
                labels = format(dados1$data, format = "%b-%y")) +
   theme(axis.text.x = element_text(angle = 10))
+
+girafe(code = print(plot1), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+  girafe_options(plot1, opts_tooltip(use_fill = TRUE))
 ```
 <!--
 ```{r}
