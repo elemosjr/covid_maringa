@@ -8,9 +8,35 @@ library(tsibble)
 library(fable)
 library(feasts)
 library(ggdark)
+library(zoo)
+
+moving_average <- function(x, n = 5)
+{
+  round(rollapply(x, n, FUN = function(x) mean(x, na.rm = TRUE),
+                  by = 1, partial = TRUE, fill=NA, align = "right"))
+}
+
+
 
 data <- read_csv("../data/maringa.csv") %>%
   mutate(data = dmy(data))
+
+data_avg <- data %>%
+  right_join(tibble(data = seq(min(data$data), max(data$data), 1))) %>%
+  arrange(data) %>%
+  mutate(confirmados_avg = moving_average(confirmados, 7),
+         ativos_avg = moving_average(ativos, 7),
+         recuperados_avg  = moving_average(recuperados, 7),
+         obitos_avg = moving_average(obitos, 7),
+         novos_avg = moving_average(novos, 7)) %>%
+  mutate(confirmados = ifelse(is.na(confirmados), confirmados_avg, confirmados),
+         ativos = ifelse(is.na(ativos), ativos_avg, ativos),
+         recuperados = ifelse(is.na(recuperados), recuperados_avg, recuperados),
+         obitos = ifelse(is.na(obitos), obitos_avg, obitos),
+         novos = ifelse(is.na(novos), novos_avg, novos)) %>%
+  select(-c(confirmados_avg, ativos_avg, recuperados_avg, obitos_avg, novos_avg))
+
+#data_avg %>% ggplot(aes(x = data, y = confirmados)) + geom_line()
 ```
 
 ## Distribuição de casos de Corona Vírus (`r format(max(data$data), "%d/%m/%Y")`)
@@ -85,14 +111,10 @@ girafe(code = print(plot_ativos), width_svg = 12, height_svg = 8, pointsize = 14
 ```
 
 ```{r, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 12, fig.height = 8}
-df_ts <- data %>%
-  mutate(recuperado = replace_na(recuperados, 0),
-#         ativos_6 = ativos * 6,
-#         confirmados_6 = confirmados * 6,
-#         recuperados_6 = recuperados * 6
-         ) %>%
+df_ts <- data_avg %>%
   as_tsibble() %>%
   fill_gaps() %>%
+  mutate(recuperado = replace_na(recuperados, 0)) %>%
   gather("tipo", "numero") %>%
   mutate(tipo = str_to_title(tipo),
          numero = replace_na(numero, 0))
