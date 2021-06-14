@@ -10,6 +10,15 @@ library(feasts)
 library(ggdark)
 library(zoo)
 
+seila <- function(x)
+{
+  ret_ <- x - lag(x, default = 0)
+  ret_[which(ret_ < 0)] <- 0
+  ret_
+}
+
+Sys.setlocale("LC_TIME", "pt_BR.UTF-8")
+
 moving_average <- function(x, n = 5)
 {
   round(rollapply(x, n, FUN = function(x) mean(x, na.rm = TRUE),
@@ -109,6 +118,44 @@ girafe(code = print(plot_ativos), width_svg = 12, height_svg = 8, pointsize = 14
   girafe_options(plot_ativos, opts_tooltip(use_fill = TRUE))
 
 ```
+
+```{r, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 12, fig.height = 8}
+dados <- read_csv("../data/maringa.csv") %>%
+  mutate(data = dmy(data))
+
+dados1 <- dados %>%
+  mutate(data = as.character(data)) %>%
+  separate(data, c("ano", "mes", "dia"), "-") %>%
+  mutate(novos_obitos = seila(obitos)) %>%
+  group_by(ano, mes) %>%
+  summarize(novos_obitos = sum(novos_obitos)) %>%
+  unite("data", mes:ano, sep = "/") %>%
+  mutate(data = dmy(paste0("1/", data))) 
+
+dados1 %>%
+  ggplot(aes(x = data, y = novos_obitos)) +
+  geom_col_interactive() +
+  geom_label_interactive(aes(label = novos_obitos), nudge_y = 5) +
+  labs(x = "Data (Mês)", y = "Novos Obitos",
+       title = "Obitos por COVID-19 em Maringá por mês"
+       #, caption = "Fonte: Prefeitura de Maringá"
+       ) +
+  scale_x_date(breaks = dados1$data,
+               labels = format(dados1$data, format = "%b-%y")) +
+  theme(axis.text.x = element_text(angle = 10))
+```
+<!--
+```{r}
+dados %>% mutate(obitos_novos = seila(obitos)) %>%
+  ggplot(aes(x = data, y = obitos_novos)) +
+  #geom_col(data = dados1, mapping = aes(x = data, y = novos_obitos)) +
+  geom_line() +
+  scale_x_date(breaks = dados1$data,
+               labels = format(dados1$data, format = "%b/%Y")) +
+  labs(x = "", y = "Novos Óbitos Diarios")
+```
+-->
+
 
 ```{r, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 12, fig.height = 8}
 df_ts <- data_avg %>%
