@@ -4,9 +4,12 @@ cd py
 echo "extracting data"
 python get_data.py
 
+cd ../docs
+Rscript -e 'rmarkdown::render("index.Rmd")'
+
 COMMIT=$(Rscript -e 'format(dplyr::last(as.Date(data.table::fread("../data/maringa.csv")$data, format = "%d/%m/%Y")), format = "%d/%m/%Y")')
 #COMMIT=$(date +"%d/%m/%Y")
-git add ../data
+git add ../*
 git commit -m "$COMMIT"
 git push -u origin master
 kaggle datasets version -p ../data -m "$COMMIT"

@@ -1,0 +1,169 @@
+```{r setup, include = FALSE}
+library(leaflet)
+library(ggiraph)
+library(glue)
+library(tidyverse)
+library(lubridate)
+library(tsibble)
+library(fable)
+library(feasts)
+library(ggdark)
+
+data <- read_csv("../data/maringa.csv") %>%
+  mutate(data = dmy(data))
+```
+
+## Distribuição de casos de Corona Vírus (`r format(max(data$data), "%d/%m/%Y")`)
+```{r dist_casos, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 8, fig.height = 8}
+tip <- "Data: %s\nTipo: %s\nNúmero: %f"
+
+y_text <- max(data$confirmados) / 1.5
+
+plot <- data %>%
+  select(-novos) %>%
+  gather(tipo, number, -data) %>%
+  mutate(tipo = str_to_title(tipo)) %>%
+  ggplot(aes(x = data, y = number, col = tipo)) +
+  geom_line_interactive(size = 2) +
+  geom_point_interactive(size = 4,
+                         mapping = aes(tooltip = sprintf(tip, format(data, "%d/%m/%Y"),
+                                                         tipo, number))) +
+#  geom_text_interactive(aes(x = dmy("18/05/2020") - 0.1,
+#                            y = y_text,
+#                            label = "Decreto nº 690/2020"),
+#                            col = scales::hue_pal()(4)[1],
+#                            size = 6, angle = 90) +
+#  geom_vline_interactive(aes(xintercept = dmy("18/05/2020") + 0.5),
+#                         linetype = 2, col = scales::hue_pal()(4)[1]) +
+  scale_x_date(breaks = data$data[seq(1, length(data$data), 3)],
+               labels = format(data$data[seq(1, length(data$data), 3)], "%d-%b")) +
+  scale_y_continuous(n.breaks = 15) +
+  labs(title = "Número de Casos de COVID-19 Maringá",
+       x = "", y = "Casos de COVID-19", colour = "") +
+  guides(fill = guide_legend(override.aes = aes(label = ""))) +
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = c(.125,.9),
+        legend.background = element_rect(colour = "transparent", fill = "transparent"))
+
+girafe(code = print(plot), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+  girafe_options(plot, opts_tooltip(use_fill = TRUE))
+```
+
+```{r, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 12, fig.height = 8}
+tip <- "Data: %s\nNúmero: %d"
+
+df_ativos <- data %>%
+  filter(data > dmy("14/04/2020"))
+
+plot_ativos <- df_ativos %>%
+  ggplot(aes(x = data, y = ativos)) +
+  geom_line_interactive(col = "royalblue", size = 2) +
+  geom_point_interactive(col = "royalblue", size = 2.5,
+                         mapping = aes(tooltip = sprintf(tip, format(data, "%d/%m/%Y"),
+                                                         ativos))) +
+#  dark_theme_light(16) +
+#  geom_text_inter(aes(x = dmy("18/05/2020") - 0.1,
+#                y = max(ativos)/1.5,
+#                label = "Decreto nº 690/2020"),
+#            col = scales::hue_pal()(4)[1],
+#            size = 6, angle = 90) +
+#  geom_vline(aes(xintercept = dmy("18/05/2020") + 0.5),
+#             linetype = 2, col = scales::hue_pal()(4)[1]) +
+  scale_x_date(breaks = df_ativos$data[seq(1, length(df_ativos$data), 3)],
+               labels = format(df_ativos$data[seq(1, length(df_ativos$data), 3)], "%d-%b")) +
+  scale_y_continuous(n.breaks = 15) +
+  labs(title = "Número de Casos Ativos de COVID-19 Maringá",
+       x = "", y = "Casos Ativos de COVID-19") +
+  guides(fill = guide_legend(override.aes = aes(label = ""))) +
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = c(.125,.9),
+        legend.background = element_rect(colour = "transparent", fill = "transparent"))
+
+girafe(code = print(plot_ativos), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+  girafe_options(plot_ativos, opts_tooltip(use_fill = TRUE))
+
+```
+
+```{r, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 12, fig.height = 8}
+df_ts <- data %>%
+  mutate(recuperado = replace_na(recuperados, 0),
+#         ativos_6 = ativos * 6,
+#         confirmados_6 = confirmados * 6,
+#         recuperados_6 = recuperados * 6
+         ) %>%
+  as_tsibble() %>%
+  fill_gaps() %>%
+  gather("tipo", "numero") %>%
+  mutate(tipo = str_to_title(tipo),
+         numero = replace_na(numero, 0))
+
+# predicao dos proximos 7 dias
+#predict_holt_tipo <- function(df_ts, dias)
+#{
+#  last_data <- max(df_ts$data)
+#  
+#  tipos <- df_ts$tipo %>% unique() %>% sort()
+#  
+#  holt <- list()
+#  for(i in tipos)
+#  {
+#    holt[[i]] <- HoltWinters(filter(df_ts, tipo == i))
+#  }
+#  
+#  holt_df <- tibble(fit = numeric())
+#  
+#  for(i in holt)
+#  {
+#    holt_df <- bind_rows(holt_df, tibble(fit = as.numeric(predict(i, dias))))
+#  }
+#  
+#  holt_df %>% mutate(tipo = rep(tipos, dias) %>% sort(), .model = "Holt-Winters",
+#                     data = rep(last_data + 1:dias, length(tipos)), numero = NA) %>%
+#    select(tipo, .model, data, numero, .mean = fit)
+#}
+#
+#holt7 <- predict_holt_tipo(df_ts, 7)
+
+modelo <- df_ts %>%
+  model(Arima = ARIMA(numero))
+
+pred7 <- modelo %>%
+  forecast(h = "7 days")
+
+# grafico dos proximos 7 dias
+plot7 <- pred7 %>%
+  autoplot(filter(df_ts, data > today() - 30)) +
+  facet_grid(tipo ~ .model, scales = "free_y") +
+  guides(fill = FALSE) +
+  labs(x = "Data", y = "Número de casos",
+        title = "Predição dos casos de coronavírus em Maringá para os próximos sete dias",
+        subtitle = "Gráfico observando em conjunto os números da predição dos próximos sete dias e dos 30 dias anteriores",
+        caption = "Fonte: Prefeitura de Maringá",
+       level = "Confiança", colour = "Modelo", fill = "Modelo") +
+#  dark_theme_minimal(15) +
+  theme(axis.text.x = element_text(angle = 90))
+
+girafe(code = print(plot7), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+  girafe_options(plot7, opts_tooltip(use_fill = TRUE))
+```
+
+```{r, echo = FALSE, message = FALSE,  warning = FALSE, fig.width = 12, fig.height = 8}
+# predicao dos proximos 30 dias
+pred30 <- modelo %>%
+  forecast(h = "30 days")
+
+# grafico dos proximos 30 dias
+plot30 <- pred30 %>%
+  autoplot(df_ts, colour = "red") +
+  facet_grid(tipo ~ .model, scales = "free_y") +
+  guides(fill = FALSE) +
+  labs(x = "Data", y = "Número de casos",
+       title = "Predição dos casos de coronavírus em Maringá para os próximos trinta dias",
+       subtitle = "Gráfico observando em conjunto os números da predição dos próximos trinta dias e os números de casos anteriores",
+       caption = "Fonte: Prefeitura de Maringá",
+       level = "Confiança", colour = "Modelo", fill = "Modelo")
+#  dark_theme_minimal(15)
+
+girafe(code = print(plot30), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+  girafe_options(plot30, opts_tooltip(use_fill = TRUE))
+```
