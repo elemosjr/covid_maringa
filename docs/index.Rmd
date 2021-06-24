@@ -164,7 +164,7 @@ dados %>% mutate(obitos_novos = seila(obitos)) %>%
 df_ts <- data_avg %>%
   as_tsibble() %>%
   fill_gaps() %>%
-  mutate(recuperado = replace_na(recuperados, 0)) %>%
+  mutate(recuperados = replace_na(recuperados, 0)) %>%
   gather("tipo", "numero") %>%
   mutate(tipo = str_to_title(tipo),
          numero = replace_na(numero, 0))
@@ -213,9 +213,10 @@ plot7 <- pred7 %>%
         caption = "Fonte: Prefeitura de Maringá",
        level = "Confiança", colour = "Modelo", fill = "Modelo") +
 #  dark_theme_minimal(15) +
+  scale_y_continuous(n.breaks = 6) +
   theme(axis.text.x = element_text(angle = 90))
 
-girafe(code = print(plot7), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+girafe(code = print(plot7), width_svg = 12, height_svg = 22, pointsize = 14) %>%
   girafe_options(plot7, opts_tooltip(use_fill = TRUE))
 ```
 
@@ -233,9 +234,10 @@ plot30 <- pred30 %>%
        title = "Predição dos casos de coronavírus em Maringá para os próximos trinta dias",
        subtitle = "Gráfico observando em conjunto os números da predição dos próximos trinta dias e os números de casos anteriores",
        caption = "Fonte: Prefeitura de Maringá",
-       level = "Confiança", colour = "Modelo", fill = "Modelo")
+       level = "Confiança", colour = "Modelo", fill = "Modelo") +
+  scale_y_continuous(n.breaks = 6)
 #  dark_theme_minimal(15)
 
-girafe(code = print(plot30), width_svg = 12, height_svg = 8, pointsize = 14) %>%
+girafe(code = print(plot30), width_svg = 12, height_svg = 22, pointsize = 14) %>%
   girafe_options(plot30, opts_tooltip(use_fill = TRUE))
 ```
