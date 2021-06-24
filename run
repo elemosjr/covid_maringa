@@ -1,8 +1,8 @@
 #!/bin/sh
 
 cd py
-#echo "extracting data"
-#python get_data.py
+echo "extracting data"
+python get_data.py
 
 cd ../docs
 Rscript -e 'rmarkdown::render("index.Rmd")'
