@@ -1,0 +1,13 @@
+----------------------------------------------------------------
+Sun Jul 11 17:15:01 BRT 2021:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.12.1.1 - (1704137): instance a816c00e-017a-9735-77d6-00000ac192f0 
+on database directory memory:/home/edu/git/covid_maringa/data/databaseName=metastore_db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@67424e82 
+Loaded from file:/home/edu/spark/spark-3.1.1-bin-hadoop3.2/jars/derby-10.12.1.1.jar
+java.vendor=Oracle Corporation
+java.runtime.version=11.0.11+9
+user.dir=/home/edu/git/covid_maringa/data
+os.name=Linux
+os.arch=amd64
+os.version=5.12.14-arch1-1
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''
